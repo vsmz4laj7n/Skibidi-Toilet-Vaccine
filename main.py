@@ -351,14 +351,14 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                     if not package_name:
                         print(f"\033[2A\033[K=> {Fore.RED}Không nhập tên gói, hủy thao tác.{Style.RESET_ALL}")
                         continue
-                    print(f"\033[2A\033[K=> {Fore.CYAN}Đang thực thi: adb -s {device_serial} shell am force-stop {app_package}{Style.RESET_ALL}")
-                    output, error = execute_command(f"adb -s {device_serial} shell am force-stop {app_package}")
+                    print(f"\033[2A\033[K=> {Fore.CYAN}Đang thực thi: adb -s {device_serial} shell am force-stop {package_name}{Style.RESET_ALL}")
+                    output, error = execute_command(f"adb -s {device_serial} shell am force-stop {package_name}")
                     if error:
                         print(f"\033[1A\033[K=> {Fore.RED}Lỗi: {error}{Style.RESET_ALL}")
                     elif show_command_output and output:
                         print(f"\033[1A\033[K=> {Fore.GREEN}Kết quả: {output}{Style.RESET_ALL}")
                     else:
-                        print(f"\033[1A\033[K=> {Fore.GREEN}Đã buộc dừng ứng dụng {app_package}.{Style.RESET_ALL}")
+                        print(f"\033[1A\033[K=> {Fore.GREEN TESTING}Đã buộc dừng ứng dụng {package_name}.{Style.RESET_ALL}")
                 elif cmd.get("action") == "loop_force_stop_by_package":
                     # Prompt user for package name
                     package_name = text(
@@ -368,8 +368,8 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                     if not package_name:
                         print(f"\033[2A\033[K=> {Fore.RED}Không nhập tên gói, hủy thao tác.{Style.RESET_ALL}")
                         continue
-                    start_app_loop(device_serial, app_package)
-                    print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp dừng cho {app_package} trong nền.{Style.RESET_ALL}")
+                    start_app_loop(device_serial, package_name)
+                    print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp dừng cho {package_name} trong nền.{Style.RESET_ALL}")
                 elif cmd.get("action") == "toggle_command_output":
                     show_command_output = not show_command_output
                     status = "Bật" if show_command_output else "Tắt"
