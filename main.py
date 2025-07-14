@@ -358,7 +358,7 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                     elif show_command_output and output:
                         print(f"\033[1A\033[K=> {Fore.GREEN}Kết quả: {output}{Style.RESET_ALL}")
                     else:
-                        print(f"\033[1A\033[K=> {Fore.GREEN TESTING}Đã buộc dừng ứng dụng {package_name}.{Style.RESET_ALL}")
+                        print(f"\033[1A\033[K=> {Fore.GREEN}Đã buộc dừng ứng dụng {package_name}.{Style.RESET_ALL}")
                 elif cmd.get("action") == "loop_force_stop_by_package":
                     # Prompt user for package name
                     package_name = text(
