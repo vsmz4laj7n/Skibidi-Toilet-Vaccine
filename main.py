@@ -243,8 +243,8 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                         start_app_loop(device_serial, app_package)
                         print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp dừng cho {app_package} trong nền.{Style.RESET_ALL}")
                 elif cmd.get("action") == "list_all_apps":
-                    # List all apps (including system) and let user select
-                    app_list = list_installed_apps(device_serial, exclude_system=False)
+                    # Set app_list to exclude system apps for faster processing
+                    app_list = list_installed_apps(device_serial, exclude_system=True)
                     if not app_list:
                         print(f"{Fore.RED}Không tìm thấy ứng dụng hoặc xảy ra lỗi.{Style.RESET_ALL}")
                         continue
@@ -351,14 +351,14 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                     if not package_name:
                         print(f"\033[2A\033[K=> {Fore.RED}Không nhập tên gói, hủy thao tác.{Style.RESET_ALL}")
                         continue
-                    print(f"\033[2A\033[K=> {Fore.CYAN}Đang thực thi: adb -s {device_serial} shell am force-stop {package_name}{Style.RESET_ALL}")
-                    output, error = execute_command(f"adb -s {device_serial} shell am force-stop {package_name}")
+                    print(f"\033[2A\033[K=> {Fore.CYAN}Đang thực thi: adb -s {device_serial} shell am force-stop {app_package}{Style.RESET_ALL}")
+                    output, error = execute_command(f"adb -s {device_serial} shell am force-stop {app_package}")
                     if error:
                         print(f"\033[1A\033[K=> {Fore.RED}Lỗi: {error}{Style.RESET_ALL}")
                     elif show_command_output and output:
                         print(f"\033[1A\033[K=> {Fore.GREEN}Kết quả: {output}{Style.RESET_ALL}")
                     else:
-                        print(f"\033[1A\033[K=> {Fore.GREEN}Đã buộc dừng ứng dụng {package_name}.{Style.RESET_ALL}")
+                        print(f"\033[1A\033[K=> {Fore.GREEN}Đã buộc dừng ứng dụng {app_package}.{Style.RESET_ALL}")
                 elif cmd.get("action") == "loop_force_stop_by_package":
                     # Prompt user for package name
                     package_name = text(
@@ -393,6 +393,36 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                 break
         time.sleep(0.1)  # Small delay to prevent excessive CPU usage
 
+def check_active_devices(devices):
+    """Check which devices are active (not in lockscreen state)."""
+    active_devices = []
+    inactive_devices = []
+    for device in devices:
+        serial = device['serial']
+        name = device['name']
+        output, error = execute_command(f"adb -s {serial} shell dumpsys window | grep mDreamingLockscreen")
+        if error:
+            inactive_devices.append(f"{name} ({serial}): Lỗi - {error}")
+        elif "mDreamingLockscreen=false" in output:
+            active_devices.append(f"{name} ({serial}): Đang hoạt động (mở khóa)")
+        else:
+            inactive_devices.append(f"{name} ({serial}): Không hoạt động (khóa hoặc không xác định)")
+
+    print(f"{Fore.CYAN}Kết quả kiểm tra trạng thái thiết bị:{Style.RESET_ALL}")
+    if active_devices:
+        print(f"{Fore.GREEN}Thiết bị đang hoạt động:{Style.RESET_ALL}")
+        for device in active_devices:
+            print(f"  - {device}")
+    else:
+        print(f"{Fore.YELLOW}Không có thiết bị nào đang hoạt động.{Style.RESET_ALL}")
+
+    if inactive_devices:
+        print(f"{Fore.RED}Thiết bị không hoạt động:{Style.RESET_ALL}")
+        for device in inactive_devices:
+            print(f"  - {device}")
+
+    input(f"\n{Fore.CYAN}Nhấn Enter để quay lại menu chọn thiết bị...{Style.RESET_ALL}")
+
 def main():
     print(f"{Fore.CYAN}Bộ chọn Lệnh Thiết bị ADB{Style.RESET_ALL}")
 
@@ -402,15 +432,24 @@ def main():
             print(f"{Fore.RED}Không tìm thấy thiết bị. Vui lòng kết nối thiết bị và đảm bảo ADB được thiết lập chính xác.{Style.RESET_ALL}")
             sys.exit(1)
 
-        # Ask user how to display device info
+        # Ask user how to display device info or check active devices
         display_choice = select(
             "Bạn muốn hiển thị thông tin thiết bị như thế nào?",
             choices=[
                 "Tên thiết bị (IP)",
                 "Thiết bị IP",
-                "Chỉ tên thiết bị"
+                "Chỉ tên thiết bị",
+                "Kiểm tra thiết bị đang hoạt động",
+                "Thoát"
             ]
         ).ask()
+
+        if display_choice == "Kiểm tra thiết bị đang hoạt động":
+            check_active_devices(devices)
+            continue
+        elif display_choice == "Thoát":
+            print(f"{Fore.GREEN}Đang thoát...{Style.RESET_ALL}")
+            sys.exit(0)
 
         device_serial, device_name = select_device(devices, display_choice)
 
