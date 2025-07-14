@@ -6,7 +6,7 @@ import signal
 from colorama import init, Fore, Style
 from questionary import select, Style as QuestionaryStyle, text
 from device_manager import get_connected_devices, select_device, list_installed_apps
-from command_executor import execute_command, start_youtube_loop, stop_youtube_loop, get_loop_status_message, start_app_loop, stop_app_loop
+from command_executor import execute_command, start_youtube_loop, stop_youtube_loop, get_loop_status_message, start_app_loop, stop_app_loop, start_chplay_loop, stop_chplay_loop
 from scrcpy_manager import run_scrcpy, stop_scrcpy, is_scrcpy_running
 
 # Initialize colorama for colored output
@@ -24,6 +24,7 @@ def signal_handler(sig, frame):
     print(f"\n{Fore.YELLOW}Đã nhận Ctrl+C, đang dừng các vòng lặp và scrcpy...{Style.RESET_ALL}")
     stop_youtube_loop()
     stop_app_loop()
+    stop_chplay_loop()
     stop_scrcpy()
     print(f"{Fore.GREEN}Đã thoát chương trình.{Style.RESET_ALL}")
     sys.exit(0)
@@ -46,12 +47,28 @@ COMMANDS = [
         "command": "adb -s {device_serial} shell pm enable com.google.android.youtube"
     },
     {
+        "name": "Vô hiệu hóa CH-Play",
+        "command": "adb -s {device_serial} shell pm disable-user --user 0 com.android.vending"
+    },
+    {
+        "name": "Kích hoạt CH-Play",
+        "command": "adb -s {device_serial} shell pm enable com.android.vending"
+    },
+    {
         "name": "Vòng lặp Thoát YouTube",
         "action": "loop_youtube"
     },
     {
         "name": "Dừng Vòng lặp YouTube",
         "action": "stop_youtube_loop"
+    },
+    {
+        "name": "Vòng lặp Thoát CH-Play",
+        "action": "loop_chplay"
+    },
+    {
+        "name": "Dừng Vòng lặp CH-Play",
+        "action": "stop_chplay_loop"
     },
     {
         "name": "Tìm kiếm Hoạt động Ứng dụng",
@@ -147,7 +164,7 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
         last_message = message
 
         if choice == "Thoát":
-            if stop_youtube_loop() or stop_app_loop():
+            if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop():
                 print(f"\033[2A\033[K=> {Fore.YELLOW}Đã dừng tất cả các vòng lặp.{Style.RESET_ALL}")
             stop_scrcpy()  # Stop scrcpy when exiting
             print(f"{Fore.GREEN}Đang thoát...{Style.RESET_ALL}")
@@ -163,6 +180,14 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                         print(f"\033[2A\033[K=> {Fore.YELLOW}Đã dừng vòng lặp YouTube.{Style.RESET_ALL}")
                     else:
                         print(f"\033[2A\033[K=> {Fore.RED}Không có vòng lặp YouTube nào đang chạy.{Style.RESET_ALL}")
+                elif cmd.get("action") == "loop_chplay":
+                    start_chplay_loop(device_serial)
+                    print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp CH-Play trong nền.{Style.RESET_ALL}")
+                elif cmd.get("action") == "stop_chplay_loop":
+                    if stop_chplay_loop():
+                        print(f"\033[2A\033[K=> {Fore.YELLOW}Đã dừng vòng lặp CH-Play.{Style.RESET_ALL}")
+                    else:
+                        print(f"\033[2A\033[K=> {Fore.RED}Không có vòng lặp CH-Play nào đang chạy.{Style.RESET_ALL}")
                 elif cmd.get("action") == "stop_app_loop":
                     if stop_app_loop():
                         print(f"\033[2A\033[K=> {Fore.YELLOW}Đã dừng vòng lặp ứng dụng.{Style.RESET_ALL}")
@@ -343,15 +368,15 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
                     if not package_name:
                         print(f"\033[2A\033[K=> {Fore.RED}Không nhập tên gói, hủy thao tác.{Style.RESET_ALL}")
                         continue
-                    start_app_loop(device_serial, package_name)
-                    print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp dừng cho {package_name} trong nền.{Style.RESET_ALL}")
+                    start_app_loop(device_serial, app_package)
+                    print(f"\033[2A\033[K=> {Fore.YELLOW}Đã bắt đầu vòng lặp dừng cho {app_package} trong nền.{Style.RESET_ALL}")
                 elif cmd.get("action") == "toggle_command_output":
                     show_command_output = not show_command_output
                     status = "Bật" if show_command_output else "Tắt"
                     print(f"\033[2A\033[K=> {Fore.YELLOW}Hiển thị đầu ra lệnh: {status}{Style.RESET_ALL}")
                 elif cmd.get("action") == "return_to_device_selection":
                     print(f"\033[2A\033[K=> {Fore.YELLOW}Đang quay lại menu chọn thiết bị...{Style.RESET_ALL}")
-                    if stop_youtube_loop() or stop_app_loop():
+                    if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop():
                         print(f"\033[2A\033[K=> {Fore.YELLOW}Đã dừng tất cả các vòng lặp.{Style.RESET_ALL}")
                     stop_scrcpy()  # Stop scrcpy before returning to device selection
                     return_to_device_selection = True

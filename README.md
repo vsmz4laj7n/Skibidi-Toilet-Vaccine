@@ -1,37 +1,37 @@
 # Skibidi-Toilet-Vaccine
 
-`Skibidi-Toilet-Vaccine` là một công cụ quản lý thiết bị Android thông qua ADB (Android Debug Bridge) và tích hợp với `scrcpy` để điều khiển thiết bị từ máy tính. Công cụ này cung cấp giao diện dòng lệnh tương tác để thực hiện các tác vụ như buộc dừng ứng dụng, vô hiệu hóa/kích hoạt ứng dụng, chạy vòng lặp giám sát ứng dụng (ví dụ: YouTube), và sử dụng `scrcpy` để chiếu màn hình thiết bị Android. Hỗ trợ đa nền tảng (Linux, macOS, Windows).
+`Skibidi-Toilet-Vaccine` is an interactive command-line tool for managing Android devices via ADB (Android Debug Bridge) and `scrcpy` for screen mirroring and control. It provides a user-friendly interface to perform tasks such as force-stopping apps, enabling/disabling apps, running background loops to monitor and stop specific apps (e.g., YouTube or Google Play Store), and controlling `scrcpy` for device screen mirroring. The tool supports multiple platforms (Linux, macOS, Windows) and is designed for both wired (USB) and wireless (Wi-Fi) ADB connections.
 
-Công cụ này hữu ích cho:
-- Buộc dừng hoặc quản lý các ứng dụng cụ thể (bao gồm ứng dụng hệ thống và người dùng).
-- Giám sát và tự động dừng các ứng dụng như YouTube.
-- Chiếu và điều khiển màn hình thiết bị Android qua `scrcpy`.
-- Tùy chỉnh hiển thị thông tin thiết bị (tên thiết bị, IP, hoặc cả hai).
-
----
-
-## Yêu cầu hệ thống
-
-- **Hệ điều hành**: Linux, macOS, hoặc Windows.
-- **Python**: Phiên bản 3.12 hoặc mới hơn.
-- **ADB (Android Debug Bridge)**: Công cụ giao tiếp với thiết bị Android.
-- **scrcpy**: Công cụ để chiếu và điều khiển màn hình thiết bị Android.
-- **Thiết bị Android**: Kích hoạt chế độ nhà phát triển và bật Gỡ lỗi USB (hoặc kết nối Wi-Fi cho ADB không dây).
+This tool is useful for:
+- Force-stopping or managing specific apps (including system and user apps).
+- Automatically monitoring and stopping apps like YouTube or Google Play Store.
+- Mirroring and controlling Android device screens using `scrcpy`.
+- Customizing device information display (device name, IP, or both).
 
 ---
 
-## Cài đặt
+## System Requirements
 
-Dưới đây là hướng dẫn chi tiết để cài đặt các thành phần cần thiết trên Linux, macOS và Windows.
+- **Operating System**: Linux, macOS, or Windows.
+- **Python**: Version 3.12 or higher.
+- **ADB (Android Debug Bridge)**: Required for communication with Android devices.
+- **scrcpy**: Required for screen mirroring and device control.
+- **Android Device**: Developer mode enabled with USB Debugging or Wi-Fi Debugging activated.
 
-### 1. Cài đặt Python
+---
+
+## Installation
+
+Below are detailed instructions for setting up the required components on Linux, macOS, and Windows.
+
+### 1. Install Python
 
 #### Linux
-Hầu hết các bản phân phối Linux đã cài sẵn Python. Để kiểm tra hoặc cài đặt Python 3.12:
+Most Linux distributions include Python. To check or install Python 3.12:
 ```bash
 python3 --version
 ```
-Nếu cần cài đặt:
+If needed, install:
 - **Ubuntu/Debian**:
   ```bash
   sudo apt update
@@ -47,26 +47,26 @@ Nếu cần cài đặt:
   ```
 
 #### macOS
-Sử dụng Homebrew để cài đặt Python 3.12:
+Use Homebrew to install Python 3.12:
 ```bash
 brew install python@3.12
 ```
-Xác minh:
+Verify:
 ```bash
 python3.12 --version
 pip3.12 --version
 ```
 
 #### Windows
-1. Tải Python 3.12 từ [trang chính thức](https://www.python.org/downloads/).
-2. Chạy trình cài đặt, đảm bảo chọn **Add Python to PATH**.
-3. Xác minh:
+1. Download Python 3.12 from the [official website](https://www.python.org/downloads/).
+2. Run the installer, ensuring **Add Python to PATH** is selected.
+3. Verify:
    ```cmd
    python --version
    pip --version
    ```
 
-### 2. Cài đặt ADB
+### 2. Install ADB
 
 #### Linux
 - **Ubuntu/Debian**:
@@ -82,34 +82,34 @@ pip3.12 --version
   ```bash
   sudo pacman -S android-tools
   ```
-- Xác minh:
+- Verify:
   ```bash
   adb --version
   ```
 
 #### macOS
-Sử dụng Homebrew:
+Use Homebrew:
 ```bash
 brew install android-platform-tools
 ```
-Xác minh:
+Verify:
 ```bash
 adb --version
 ```
 
 #### Windows
-1. Tải Android SDK Platform Tools từ [trang chính thức](https://developer.android.com/studio/releases/platform-tools).
-2. Giải nén vào thư mục (ví dụ: `C:\platform-tools`).
-3. Thêm thư mục `platform-tools` vào biến môi trường PATH:
-   - Nhấn **Win + R**, gõ `sysdm.cpl`, nhấn Enter.
-   - Vào tab **Advanced** > **Environment Variables**.
-   - Trong **System Variables**, chỉnh sửa **Path**, thêm đường dẫn đến `platform-tools`.
-4. Xác minh:
+1. Download Android SDK Platform Tools from the [official website](https://developer.android.com/studio/releases/platform-tools).
+2. Extract to a directory (e.g., `C:\platform-tools`).
+3. Add the `platform-tools` directory to the system PATH:
+   - Press **Win + R**, type `sysdm.cpl`, and press Enter.
+   - Go to **Advanced** > **Environment Variables**.
+   - Under **System Variables**, edit **Path** and add the `platform-tools` directory.
+4. Verify:
    ```cmd
    adb --version
    ```
 
-### 3. Cài đặt scrcpy
+### 3. Install scrcpy
 
 #### Linux
 - **Ubuntu/Debian**:
@@ -125,152 +125,158 @@ adb --version
   ```bash
   sudo pacman -S scrcpy
   ```
-- Xác minh:
+- Verify:
   ```bash
   scrcpy --version
   ```
 
 #### macOS
-Sử dụng Homebrew:
+Use Homebrew:
 ```bash
 brew install scrcpy
 ```
-Xác minh:
+Verify:
 ```bash
 scrcpy --version
 ```
 
 #### Windows
-1. Tải `scrcpy` từ [GitHub chính thức](https://github.com/Genymobile/scrcpy/releases).
-2. Giải nén vào thư mục (ví dụ: `C:\scrcpy`).
-3. Thêm thư mục `scrcpy` vào biến môi trường PATH (tương tự cách thêm `platform-tools`).
-4. Xác minh:
+1. Download `scrcpy` from the [official GitHub releases](https://github.com/Genymobile/scrcpy/releases).
+2. Extract to a directory (e.g., `C:\scrcpy`).
+3. Add the `scrcpy` directory to the system PATH (similar to `platform-tools`).
+4. Verify:
    ```cmd
    scrcpy --version
    ```
 
-### 4. Cài đặt thư viện Python
+### 4. Install Python Dependencies
 
-Công cụ yêu cầu các thư viện `colorama`, `psutil`, và `questionary`. Cài đặt bằng pip:
+The tool requires the `colorama`, `psutil`, and `questionary` Python libraries. Install them using pip:
 ```bash
 pip3 install colorama psutil questionary
 ```
 
-### 5. Thiết lập kết nối với thiết bị Android
+### 5. Set Up Android Device Connection
 
-Để sử dụng công cụ, bạn cần kết nối thiết bị Android với máy tính qua USB hoặc Wi-Fi. Dưới đây là hướng dẫn chi tiết.
+To use the tool, connect your Android device to your computer via USB or Wi-Fi. Follow these steps:
 
-#### Kích hoạt chế độ nhà phát triển
-1. Trên thiết bị Android:
-   - Vào **Cài đặt** > **Giới thiệu về điện thoại**.
-   - Nhấn 7 lần vào **Số hiệu bản dựng** để bật chế độ nhà phát triển.
-   - Vào **Cài đặt** > **Hệ thống** > **Tùy chọn nhà phát triển**.
-   - Bật **Gỡ lỗi USB** (cho kết nối USB) hoặc **Gỡ lỗi USB qua Wi-Fi** (cho kết nối không dây).
+#### Enable Developer Mode
+1. On your Android device:
+   - Go to **Settings** > **About phone**.
+   - Tap **Build number** 7 times to enable Developer Mode.
+   - Navigate to **Settings** > **System** > **Developer options**.
+   - Enable **USB Debugging** (for USB connections) or **Wireless Debugging** (for Wi-Fi connections).
 
-#### Kết nối qua USB
-1. Kết nối thiết bị Android với máy tính bằng cáp USB.
-2. Trên thiết bị, cho phép gỡ lỗi USB khi được yêu cầu.
-3. Xác minh kết nối:
+#### Connect via USB
+1. Connect your Android device to your computer using a USB cable.
+2. Allow USB debugging when prompted on the device.
+3. Verify the connection:
    ```bash
    adb devices
    ```
-   Nếu thấy thiết bị với trạng thái `device` (ví dụ: `1234567890abcdef device`), kết nối đã thành công.
+   If a device appears with the status `device` (e.g., `1234567890abcdef device`), the connection is successful.
 
-#### Kết nối qua Wi-Fi
-1. Đảm bảo thiết bị Android và máy tính ở cùng mạng Wi-Fi.
-2. Kết nối thiết bị qua USB và chạy:
+#### Connect via Wi-Fi
+1. Ensure your Android device and computer are on the same Wi-Fi network.
+2. Connect the device via USB and run:
    ```bash
    adb tcpip 5555
    ```
-3. Tìm địa chỉ IP của thiết bị:
-   - Vào **Cài đặt** > **Wi-Fi**, nhấn vào mạng đang kết nối để xem IP (thường dạng `192.168.x.x`).
-   - Hoặc chạy:
+3. Find the device's IP address:
+   - Go to **Settings** > **Wi-Fi**, tap the connected network to view the IP (e.g., `192.168.x.x`).
+   - Or run:
      ```bash
      adb shell ip addr show wlan0 | grep inet
      ```
-4. Ngắt cáp USB và kết nối qua Wi-Fi:
+4. Disconnect the USB cable and connect via Wi-Fi:
    ```bash
    adb connect <device-ip>:5555
    ```
-   Thay `<device-ip>` bằng địa chỉ IP của thiết bị.
-5. Xác minh:
+   Replace `<device-ip>` with the device's IP address.
+5. Verify:
    ```bash
    adb devices
    ```
-   Thiết bị sẽ xuất hiện với trạng thái `device` (ví dụ: `192.168.1.100:5555 device`).
-6. Để sử dụng `scrcpy` qua Wi-Fi, chạy:
+   The device should appear with the status `device` (e.g., `192.168.1.100:5555 device`).
+6. To use `scrcpy` via Wi-Fi:
    ```bash
    scrcpy -s <device-ip>:5555
    ```
 
-#### Lưu ý khi kết nối
-- Nếu thiết bị hiển thị trạng thái `unauthorized`, kiểm tra và cấp quyền trên thiết bị.
-- Nếu thiết bị hiển thị trạng thái `offline`, khởi động lại kết nối bằng `adb disconnect` rồi thử lại.
-- Đảm bảo không có tường lửa chặn cổng 5555 trên máy tính hoặc thiết bị.
+#### Connection Notes
+- If the device shows as `unauthorized`, check the device and allow permissions.
+- If the device shows as `offline`, run `adb disconnect` and reconnect.
+- Ensure no firewall is blocking port 5555 on your computer or device.
 
-### 6. Cài đặt Skibidi-Toilet-Vaccine
+### 6. Install Skibidi-Toilet-Vaccine
 
-- Tải mã nguồn từ kho lưu trữ:
-   ```bash
-   git clone https://github.com/vsmz4laj7n/Skibidi-Toilet-Vaccine.git
-   cd Skibidi-Toilet-Vaccine
-   ```
+Clone the repository and navigate to the project directory:
+```bash
+git clone https://github.com/vsmz4laj7n/Skibidi-Toilet-Vaccine.git
+cd Skibidi-Toilet-Vaccine
+```
 
 ---
 
-## Sử dụng công cụ
+## Usage
 
-1. Chạy chương trình:
+1. Run the program:
    ```bash
    python3 main.py
    ```
-2. Chọn cách hiển thị thông tin thiết bị (Tên thiết bị + IP, chỉ IP, hoặc chỉ tên).
-3. Chọn thiết bị từ danh sách thiết bị Android được kết nối.
-4. Sử dụng menu tương tác để thực hiện các lệnh:
-   - **Tắt YouTube**: Buộc dừng ứng dụng YouTube.
-   - **Vô hiệu hóa/Kích hoạt YouTube**: Vô hiệu hóa hoặc kích hoạt YouTube.
-   - **Vòng lặp Thoát YouTube**: Tự động dừng YouTube khi phát hiện hoạt động.
-   - **Tìm kiếm Hoạt động Ứng dụng**: Tìm và thao tác với ứng dụng dựa trên từ khóa.
-   - **Danh sách tất cả ứng dụng**: Liệt kê và thao tác với tất cả ứng dụng.
-   - **Bật/Tắt scrcpy**: Chiếu và điều khiển màn hình thiết bị.
-   - **Lấy Ứng dụng Đang Chạy**: Xem ứng dụng hiện tại.
-   - **Buộc Dừng Ứng dụng**: Dừng ứng dụng cụ thể hoặc ứng dụng đang chạy.
-   - **Vòng lặp Buộc Dừng**: Tự động dừng ứng dụng cụ thể khi phát hiện hoạt động.
-   - **Bật/Tắt Hiển thị Đầu ra Lệnh**: Hiển thị/ẩn đầu ra chi tiết của lệnh.
-   - **Quay lại chọn thiết bị**: Chuyển về menu chọn thiết bị.
-   - **Thoát**: Thoát chương trình, dừng các vòng lặp và `scrcpy`.
+2. Select how to display device information (Device Name + IP, IP only, or Device Name only).
+3. Choose a device from the list of connected Android devices.
+4. Use the interactive menu to execute commands:
+   - **Tắt YouTube**: Force-stop the YouTube app.
+   - **Vô hiệu hóa/Kích hoạt YouTube**: Disable or enable the YouTube app.
+   - **Vòng lặp Thoát YouTube**: Automatically stop YouTube when activity is detected.
+   - **Vòng lặp Thoát CH-Play**: Automatically stop Google Play Store when activity is detected.
+   - **Tìm kiếm Hoạt động Ứng dụng**: Search for apps by keyword and perform actions (force-stop or loop-stop).
+   - **Danh sách tất cả ứng dụng**: List all apps (including system apps) and perform actions (force-stop, loop-stop, disable, or enable).
+   - **Bật/Tắt scrcpy**: Start or stop screen mirroring with `scrcpy`.
+   - **Lấy Ứng dụng Đang Chạy**: View the currently running app.
+   - **Buộc Dừng Ứng dụng theo Tên Gói**: Force-stop an app by entering its package name.
+   - **Buộc Dừng Ứng dụng Đang Chạy**: Force-stop the currently running app.
+   - **Vòng lặp Buộc Dừng theo Tên Gói**: Automatically stop a specific app when activity is detected.
+   - **Dừng Vòng lặp Ứng dụng**: Stop any running app loop.
+   - **Bật/Tắt Hiển thị Đầu ra Lệnh**: Toggle detailed command output display.
+   - **Quay lại chọn thiết bị**: Return to the device selection menu.
+   - **Thoát**: Exit the program, stopping all loops and `scrcpy`.
 
 ---
 
-## Cấu trúc mã nguồn
+## Code Structure
 
-- `main.py`: Xử lý giao diện menu và điều phối lệnh.
-- `device_manager.py`: Quản lý thiết bị và thông tin ứng dụng.
-- `command_executor.py`: Thực thi lệnh ADB và quản lý vòng lặp giám sát.
-- `scrcpy_manager.py`: Quản lý `scrcpy` để chiếu và điều khiển màn hình.
-
----
-
-## Giải quyết sự cố
-
-- **Không tìm thấy thiết bị**:
-  - Kiểm tra **Gỡ lỗi USB** hoặc **Gỡ lỗi USB qua Wi-Fi** đã bật.
-  - Chạy `adb devices` để xác minh kết nối.
-  - Cài đặt lại ADB nếu cần.
-- **scrcpy không chạy**:
-  - Xác minh cài đặt bằng `scrcpy --version`.
-  - Đảm bảo thiết bị ở trạng thái `device`.
-- **Lỗi Python module**:
-  - Cài đặt thư viện bằng `pip3 install colorama psutil questionary`.
-- **Kết nối Wi-Fi thất bại**:
-  - Kiểm tra thiết bị và máy tính trên cùng mạng Wi-Fi.
-  - Đảm bảo cổng `<Port>` không bị chặn bởi tường lửa.
+- `main.py`: Handles the interactive menu and orchestrates command execution.
+- `device_manager.py`: Manages device detection, selection, and app information retrieval.
+- `command_executor.py`: Executes ADB commands and manages background monitoring loops.
+- `scrcpy_manager.py`: Manages `scrcpy` for screen mirroring and control.
+- `Packages_ADB.txt` (optional): Lists system packages to filter out during app searches (if present).
 
 ---
 
-## Đóng góp
+## Troubleshooting
 
-- Fork kho lưu trữ và gửi pull request với cải tiến.
-- Báo cáo lỗi hoặc đề xuất tính năng qua Issues trên GitHub.
+- **No devices found**:
+  - Ensure **USB Debugging** or **Wireless Debugging** is enabled.
+  - Run `adb devices` to verify the connection.
+  - Reinstall ADB if necessary.
+- **scrcpy fails to run**:
+  - Verify installation with `scrcpy --version`.
+  - Ensure the device is in `device` status.
+- **Python module errors**:
+  - Install dependencies with `pip3 install colorama psutil questionary`.
+- **Wi-Fi connection issues**:
+  - Confirm the device and computer are on the same Wi-Fi network.
+  - Ensure port 5555 is not blocked by a firewall.
+- **Packages_ADB.txt not found**:
+  - The tool will still function but won't filter system apps during searches.
+
+---
+
+## Contributing
+
+- Fork the repository and submit pull requests with improvements.
+- Report bugs or suggest features via GitHub Issues.
 
 ---
