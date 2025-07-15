@@ -2,7 +2,9 @@
 import subprocess
 import threading
 import time
-from colorama import Fore, Style
+from rich.console import Console
+
+console = Console()
 
 # Flags and storage for loops and messages
 loop_running = False
@@ -35,7 +37,7 @@ def youtube_loop(device_serial):
         output, error = run_adb_command(f"adb -s {device_serial} shell dumpsys activity activities | grep com.google.android.youtube")
         if output:
             stop_output, stop_error = run_adb_command(f"adb -s {device_serial} shell am force-stop com.google.android.youtube")
-            last_loop_message = f"{Fore.YELLOW}Phát hiện hoạt động YouTube, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}{Style.RESET_ALL}"
+            last_loop_message = f"[yellow]Phát hiện hoạt động YouTube, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}[/yellow]"
         else:
             last_loop_message = ""
         time.sleep(5)
@@ -65,7 +67,7 @@ def chplay_loop(device_serial):
         output, error = run_adb_command(f"adb -s {device_serial} shell dumpsys activity activities | grep com.android.vending")
         if output:
             stop_output, stop_error = run_adb_command(f"adb -s {device_serial} shell am force-stop com.android.vending")
-            chplay_last_loop_message = f"{Fore.YELLOW}Phát hiện hoạt động CH-Play, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}{Style.RESET_ALL}"
+            chplay_last_loop_message = f"[yellow]Phát hiện hoạt động CH-Play, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}[/yellow]"
         else:
             chplay_last_loop_message = ""
         time.sleep(5)
@@ -96,7 +98,7 @@ def app_loop(device_serial, app_package):
         output, error = run_adb_command(f"adb -s {device_serial} shell dumpsys activity activities | grep {app_package}")
         if output:
             stop_output, stop_error = run_adb_command(f"adb -s {device_serial} shell am force-stop {app_package}")
-            app_last_loop_message = f"{Fore.YELLOW}Phát hiện hoạt động cho {app_package}, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}{Style.RESET_ALL}"
+            app_last_loop_message = f"[yellow]Phát hiện hoạt động cho {app_package}, đã buộc dừng. Kết quả: {stop_output or 'Không có'}, Lỗi: {stop_error or 'Không có'}[/yellow]"
         else:
             app_last_loop_message = ""
         time.sleep(5)

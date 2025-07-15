@@ -1,7 +1,9 @@
 #!/usr/bin/python3.12
 import subprocess
-from colorama import Fore, Style
 from questionary import select, Style as QuestionaryStyle
+from rich.console import Console
+
+console = Console()
 
 def run_adb_command(command):
     """Execute an ADB command and return the output."""
@@ -22,7 +24,7 @@ def get_connected_devices():
     """Get list of connected ADB devices with their names."""
     output, error = run_adb_command("adb devices")
     if error:
-        print(f"{Fore.RED}Lỗi khi lấy danh sách thiết bị: {error}{Style.RESET_ALL}")
+        console.print(f"[red]Lỗi khi lấy danh sách thiết bị: {error}[/red]")
         return []
     devices = []
     lines = output.splitlines()
@@ -79,7 +81,7 @@ def get_system_packages():
                     package = line.replace("package:", "").strip()
                     system_packages.add(package)
     except FileNotFoundError:
-        print(f"{Fore.RED}Không tìm thấy file Packages_ADB.txt. Không thể lọc gói hệ thống.{Style.RESET_ALL}")
+        console.print("[red]Không tìm thấy file Packages_ADB.txt. Không thể lọc gói hệ thống.[/red]")
     return system_packages
 
 def list_installed_apps(device_serial, exclude_system=True):
@@ -88,7 +90,7 @@ def list_installed_apps(device_serial, exclude_system=True):
     command = f"adb -s {device_serial} shell pm list packages"
     output, error = run_adb_command(command)
     if error:
-        print(f"{Fore.RED}Lỗi khi liệt kê các gói: {error}{Style.RESET_ALL}")
+        console.print(f"[red]Lỗi khi liệt kê các gói: {error}[/red]")
         return []
     packages = [line.replace('package:', '').strip() for line in output.splitlines() if line.strip()]
     # Filter out system packages if requested
