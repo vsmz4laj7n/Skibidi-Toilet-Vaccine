@@ -17,6 +17,10 @@ target_app_package = ""
 chplay_loop_running = False
 chplay_loop_thread = None
 chplay_last_loop_message = ""
+volume_loop_running = False
+volume_loop_thread = None
+volume_last_loop_message = ""
+target_volume_level = 0
 
 def run_adb_command(command):
     """Execute an ADB command and return the output."""
@@ -121,9 +125,50 @@ def stop_app_loop():
         return True
     return False
 
+def volume_loop(device_serial, target_volume):
+    """Run a loop to continuously set the volume to the target level without pause."""
+    global volume_loop_running, volume_last_loop_message, target_volume_level
+    target_volume_level = target_volume
+    while volume_loop_running:
+        get_vol_cmd = f"adb -s {device_serial} shell dumpsys audio | grep -A 10 STREAM_MUSIC | grep 'streamVolume:'"
+        out, err = run_adb_command(get_vol_cmd)
+        if out and not err:
+            try:
+                current_volume = int(out.split(":")[1].strip())
+                if current_volume != target_volume:
+                    keyevent = 24 if current_volume < target_volume else 25  # Volume up or down
+                    run_adb_command(f"adb -s {device_serial} shell input keyevent {keyevent}")
+                    volume_last_loop_message = f"[yellow]Đã điều chỉnh âm lượng từ {current_volume} về {target_volume}.[/yellow]"
+                else:
+                    volume_last_loop_message = ""
+            except (IndexError, ValueError):
+                volume_last_loop_message = "[yellow]Không thể lấy âm lượng hiện tại.[/yellow]"
+        else:
+            volume_last_loop_message = "[yellow]Lỗi khi lấy âm lượng hiện tại.[/yellow]"
+
+def start_volume_loop(device_serial, target_volume):
+    """Start the volume loop in a background thread."""
+    global volume_loop_running, volume_loop_thread
+    if volume_loop_running:
+        return False
+    volume_loop_running = True
+    volume_loop_thread = threading.Thread(target=volume_loop, args=(device_serial, target_volume), daemon=True)
+    volume_loop_thread.start()
+    return True
+
+def stop_volume_loop():
+    """Stop the volume loop."""
+    global volume_loop_running
+    if volume_loop_running:
+        volume_loop_running = False
+        return True
+    return False
+
 def get_loop_status_message():
-    """Return the last loop status message (prioritizing app loop, then CH-Play, then YouTube)."""
-    global app_last_loop_message, chplay_last_loop_message, last_loop_message
+    """Return the last loop status message (prioritizing volume loop, then app loop, then CH-Play, then YouTube)."""
+    global volume_last_loop_message, app_last_loop_message, chplay_last_loop_message, last_loop_message
+    if volume_loop_running and volume_last_loop_message:
+        return volume_last_loop_message
     if app_loop_running and app_last_loop_message:
         return app_last_loop_message
     if chplay_loop_running and chplay_last_loop_message:
