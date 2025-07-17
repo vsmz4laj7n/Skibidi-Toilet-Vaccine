@@ -189,35 +189,6 @@ COMMANDS = [
                 "action": "lock_screen"
             }
         ]
-    },
-    {
-        "name": "Funny Options",
-        "sub_commands": [
-            {
-                "name": "Mở Camera (Trước)",
-                "action": "open_camera_front"
-            },
-            {
-                "name": "Mở Camera (Sau)",
-                "action": "open_camera_back"
-            },
-            {
-                "name": "Chụp Ảnh (Camera Trước)",
-                "action": "take_picture_front"
-            },
-            {
-                "name": "Chụp Ảnh (Camera Sau)",
-                "action": "take_picture_back"
-            },
-            {
-                "name": "Chụp Ảnh (Camera Trước, khi khóa màn hình)",
-                "action": "take_picture_front_lockscreen"
-            },
-            {
-                "name": "Chụp Ảnh (Camera Sau, khi khóa màn hình)",
-                "action": "take_picture_back_lockscreen"
-            }
-        ]
     }
 ]
 
@@ -638,19 +609,18 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
                     console.print(f"\033[2A\033[K=> [bold #5c35cc]Đang đánh thức thiết bị...[/bold #5c35cc]")
                     execute_command(f"adb -s {device_serial} shell input keyevent 224")  # WAKEUP
                     time.sleep(0.5)
+                    # Try to dismiss keyguard
                     execute_command(f"adb -s {device_serial} shell input keyevent 82")  # MENU
                     time.sleep(0.5)
-                    # Auto-check password lockscreen
-                    pw_out, pw_err = execute_command(f"adb -s {device_serial} shell dumpsys device_policy | grep 'Password quality'")
-                    has_password = False
-                    if pw_out and 'PASSWORD_QUALITY_SOMETHING' in pw_out:
-                        has_password = False
-                    elif pw_out and 'PASSWORD_QUALITY_' in pw_out and 'UNSPECIFIED' not in pw_out:
-                        has_password = True
                     # Check if still locked
                     output, error = execute_command(f"adb -s {device_serial} shell dumpsys window | grep mDreamingLockscreen")
                     if output and "mDreamingLockscreen=true" in output:
-                        if not has_password:
+                        has_password = select(
+                            "Màn hình khóa có mật khẩu không?",
+                            choices=["Có", "Không"]
+                        ).ask()
+                        if has_password == "Không":
+                            # Perform swipe up to unlock (coordinates may need adjustment per device)
                             execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
                             console.print(f"\033[1A\033[K=> [bold green]Đã thực hiện vuốt để mở khóa.[/bold green]")
                         else:
@@ -665,6 +635,7 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
                                         execute_command(f"adb -s {device_serial} shell input text '{digit}'")
                                         time.sleep(0.2)
                                 execute_command(f"adb -s {device_serial} shell input keyevent 66")  # ENTER
+                                # Swipe up after entering password
                                 execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
                                 console.print(f"\033[1A\033[K=> [bold green]Đã nhập mật khẩu và vuốt để mở khóa.[/bold green]")
                             else:
@@ -680,138 +651,6 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
                 elif cmd.get("action") == "lock_screen":
                     execute_command(f"adb -s {device_serial} shell input keyevent 26")
                     console.print(f"\033[1A\033[K=> [bold green]Đã khóa màn hình thiết bị.[/bold green]")
-                elif cmd.get("action") == "open_camera_front":
-                    # Open camera in front mode (may require extra intent, fallback to open camera)
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA true")
-                    console.print(f"\033[1A\033[K=> [bold green]Đã mở Camera (Trước).[/bold green]")
-                elif cmd.get("action") == "open_camera_back":
-                    # Open camera in back mode (default)
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA false")
-                    console.print(f"\033[1A\033[K=> [bold green]Đã mở Camera (Sau).[/bold green]")
-                elif cmd.get("action") == "take_picture_front":
-                    # Open camera in front mode, wait, then take picture
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA true")
-                    time.sleep(2)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 27")
-                    action = select(
-                        "Bạn muốn lưu hay hủy ảnh vừa chụp?",
-                        choices=["Lưu ảnh", "Hủy ảnh"]
-                    ).ask()
-                    if action == "Hủy ảnh":
-                        execute_command(f"adb -s {device_serial} shell input tap 200 2250")
-                        console.print(f"\033[1A\033[K=> [bold yellow]Đã hủy ảnh vừa chụp.[/bold yellow]")
-                    else:
-                        execute_command(f"adb -s {device_serial} shell input tap 880 2250")
-                        console.print(f"\033[1A\033[K=> [bold green]Đã lưu ảnh vừa chụp.[/bold green]")
-                elif cmd.get("action") == "take_picture_back":
-                    # Open camera in back mode, wait, then take picture
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA false")
-                    time.sleep(2)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 27")
-                    action = select(
-                        "Bạn muốn lưu hay hủy ảnh vừa chụp?",
-                        choices=["Lưu ảnh", "Hủy ảnh"]
-                    ).ask()
-                    if action == "Hủy ảnh":
-                        execute_command(f"adb -s {device_serial} shell input tap 200 2200")
-                        console.print(f"\033[1A\033[K=> [bold yellow]Đã hủy ảnh vừa chụp.[/bold yellow]")
-                    else:
-                        execute_command(f"adb -s {device_serial} shell input tap 900 2200")
-                        console.print(f"\033[1A\033[K=> [bold green]Đã lưu ảnh vừa chụp.[/bold green]")
-                elif cmd.get("action") == "take_picture_front_lockscreen":
-                    # Unlock screen (swipe, no password)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 224")  # WAKEUP
-                    time.sleep(0.5)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 82")  # MENU
-                    time.sleep(0.5)
-                    # Auto-check password lockscreen
-                    pw_out, pw_err = execute_command(f"adb -s {device_serial} shell dumpsys device_policy | grep 'Password quality'")
-                    has_password = False
-                    if pw_out and 'PASSWORD_QUALITY_SOMETHING' in pw_out:
-                        has_password = False
-                    elif pw_out and 'PASSWORD_QUALITY_' in pw_out and 'UNSPECIFIED' not in pw_out:
-                        has_password = True
-                    # Check if still locked
-                    output, error = execute_command(f"adb -s {device_serial} shell dumpsys window | grep mDreamingLockscreen")
-                    if output and "mDreamingLockscreen=true" in output:
-                        if not has_password:
-                            execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
-                            time.sleep(0.5)
-                        else:
-                            passcode = text("Nhập mã PIN/mật khẩu mở khóa màn hình:").ask()
-                            if passcode:
-                                for digit in passcode:
-                                    if digit.isdigit():
-                                        keycode = 7 + int(digit)
-                                        execute_command(f"adb -s {device_serial} shell input keyevent {keycode}")
-                                        time.sleep(0.2)
-                                    else:
-                                        execute_command(f"adb -s {device_serial} shell input text '{digit}'")
-                                        time.sleep(0.2)
-                                execute_command(f"adb -s {device_serial} shell input keyevent 66")  # ENTER
-                                execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
-                                time.sleep(0.5)
-                    # Now take picture front
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA true")
-                    time.sleep(2)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 27")
-                    action = select(
-                        "Bạn muốn lưu hay hủy ảnh vừa chụp?",
-                        choices=["Lưu ảnh", "Hủy ảnh"]
-                    ).ask()
-                    if action == "Hủy ảnh":
-                        execute_command(f"adb -s {device_serial} shell input tap 200 2200")
-                        console.print(f"\033[1A\033[K=> [bold yellow]Đã hủy ảnh vừa chụp.[/bold yellow]")
-                    else:
-                        execute_command(f"adb -s {device_serial} shell input tap 900 2200")
-                        console.print(f"\033[1A\033[K=> [bold green]Đã lưu ảnh vừa chụp.[/bold green]")
-                elif cmd.get("action") == "take_picture_back_lockscreen":
-                    # Unlock screen (swipe, no password)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 224")  # WAKEUP
-                    time.sleep(0.5)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 82")  # MENU
-                    time.sleep(0.5)
-                    # Auto-check password lockscreen
-                    pw_out, pw_err = execute_command(f"adb -s {device_serial} shell dumpsys device_policy | grep 'Password quality'")
-                    has_password = False
-                    if pw_out and 'PASSWORD_QUALITY_SOMETHING' in pw_out:
-                        has_password = False
-                    elif pw_out and 'PASSWORD_QUALITY_' in pw_out and 'UNSPECIFIED' not in pw_out:
-                        has_password = True
-                    # Check if still locked
-                    output, error = execute_command(f"adb -s {device_serial} shell dumpsys window | grep mDreamingLockscreen")
-                    if output and "mDreamingLockscreen=true" in output:
-                        if not has_password:
-                            execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
-                            time.sleep(0.5)
-                        else:
-                            passcode = text("Nhập mã PIN/mật khẩu mở khóa màn hình:").ask()
-                            if passcode:
-                                for digit in passcode:
-                                    if digit.isdigit():
-                                        keycode = 7 + int(digit)
-                                        execute_command(f"adb -s {device_serial} shell input keyevent {keycode}")
-                                        time.sleep(0.2)
-                                    else:
-                                        execute_command(f"adb -s {device_serial} shell input text '{digit}'")
-                                        time.sleep(0.2)
-                                execute_command(f"adb -s {device_serial} shell input keyevent 66")  # ENTER
-                                execute_command(f"adb -s {device_serial} shell input swipe 300 1000 300 300 300")
-                                time.sleep(0.5)
-                    # Now take picture back
-                    execute_command(f"adb -s {device_serial} shell am start -a android.media.action.IMAGE_CAPTURE --ez android.intent.extra.USE_FRONT_CAMERA false")
-                    time.sleep(2)
-                    execute_command(f"adb -s {device_serial} shell input keyevent 27")
-                    action = select(
-                        "Bạn muốn lưu hay hủy ảnh vừa chụp?",
-                        choices=["Lưu ảnh", "Hủy ảnh"]
-                    ).ask()
-                    if action == "Hủy ảnh":
-                        execute_command(f"adb -s {device_serial} shell input tap 200 2200")
-                        console.print(f"\033[1A\033[K=> [bold yellow]Đã hủy ảnh vừa chụp.[/bold yellow]")
-                    else:
-                        execute_command(f"adb -s {device_serial} shell input tap 900 2200")
-                        console.print(f"\033[1A\033[K=> [bold green]Đã lưu ảnh vừa chụp.[/bold green]")
 
 def show_menu(device_serial, commands, device_name=None, display_choice="Tên thiết bị (IP)"):
     """Hiển thị menu chính với các tùy chọn màu sắc cho tùy chọn chính và thông tin trạng thái."""
