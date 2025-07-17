@@ -5,7 +5,7 @@ import re
 import signal
 from questionary import select, Style as QuestionaryStyle, text
 from device_manager import get_connected_devices, select_device, list_installed_apps
-from command_executor import execute_command, start_youtube_loop, stop_youtube_loop, get_loop_status_message, start_app_loop, stop_app_loop, start_chplay_loop, stop_chplay_loop
+from command_executor import execute_command, start_youtube_loop, stop_youtube_loop, get_loop_status_message, start_app_loop, stop_app_loop, start_chplay_loop, stop_chplay_loop, start_volume_loop, stop_volume_loop
 from scrcpy_manager import run_scrcpy, stop_scrcpy, is_scrcpy_running
 from rich.console import Console
 from rich.table import Table
@@ -26,6 +26,7 @@ def signal_handler(sig, frame):
     stop_youtube_loop()
     stop_app_loop()
     stop_chplay_loop()
+    stop_volume_loop()
     stop_scrcpy()
     console.print("[bold green]Đã thoát chương trình.[/bold green]")
     sys.exit(0)
@@ -145,6 +146,14 @@ COMMANDS = [
             {
                 "name": "Đặt Âm lượng",
                 "action": "set_volume"
+            },
+            {
+                "name": "Đặt Âm lượng Vĩnh viễn",
+                "action": "set_permanent_volume"
+            },
+            {
+                "name": "Dừng Vòng lặp Âm lượng",
+                "action": "stop_volume_loop"
             },
             {
                 "name": "Tắt Âm",
@@ -313,7 +322,7 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
         last_message = message
 
         if choice == "Thoát":
-            if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop():
+            if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop() or stop_volume_loop():
                 console.print(f"\033[2A\033[K=> [bold yellow]Đã dừng tất cả các vòng lặp.[/bold yellow]")
             stop_scrcpy()
             console.print("[bold green]Đang thoát...[/bold green]")
@@ -350,6 +359,11 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
                         console.print(f"\033[2A\033[K=> [bold yellow]Đã dừng vòng lặp ứng dụng.[/bold yellow]")
                     else:
                         console.print(f"\033[2A\033[K=> [bold red]Không có vòng lặp ứng dụng nào đang chạy.[/bold red]")
+                elif cmd.get("action") == "stop_volume_loop":
+                    if stop_volume_loop():
+                        console.print(f"\033[2A\033[K=> [bold yellow]Đã dừng vòng lặp âm lượng.[/bold yellow]")
+                    else:
+                        console.print(f"\033[2A\033[K=> [bold red]Không có vòng lặp âm lượng nào đang chạy.[/bold red]")
                 elif cmd.get("action") == "check_volume":
                     console.print(f"\033[2A\033[K=> [bold #5c35cc]Đang kiểm tra âm lượng cho thiết bị {device_serial}[/bold #5c35cc]")
                     output, error = execute_command(f"adb -s {device_serial} shell dumpsys audio | grep -A 10 STREAM_MUSIC")
@@ -415,6 +429,24 @@ def show_sub_menu(device_serial, sub_commands, device_name, display_choice, pare
                                 console.print(f"\033[1A\033[K=> [bold green]Đã đặt âm lượng thành {target_volume}.[/bold green]")
                             else:
                                 console.print(f"\033[1A\033[K=> [bold yellow]Đã thử điều chỉnh âm lượng, nhưng không khớp chính xác (hiện tại: {current_volume}).[/bold yellow]")
+                elif cmd.get("action") == "set_permanent_volume":
+                    max_volume_cmd = f"adb -s {device_serial} shell dumpsys audio | grep -A 10 STREAM_MUSIC | grep Max:"
+                    max_out, max_err = execute_command(max_volume_cmd)
+                    max_volume = 15  # Default
+                    if max_out and not max_err:
+                        try:
+                            max_volume = int(max_out.split(":")[1].strip())
+                        except (IndexError, ValueError):
+                            pass
+                    volume_input = text(
+                        f"Nhập mức âm lượng vĩnh viễn (0-{max_volume}):",
+                        style=custom_style,
+                        validate=lambda x: x.isdigit() and 0 <= int(x) <= max_volume
+                    ).ask()
+                    if volume_input:
+                        target_volume = int(volume_input)
+                        start_volume_loop(device_serial, target_volume)
+                        console.print(f"\033[2A\033[K=> [bold yellow]Đã bắt đầu vòng lặp đặt âm lượng vĩnh viễn ở mức {target_volume} trong nền.[/bold yellow]")
                 elif cmd.get("action") == "search_app_activity":
                     query = text(
                         "Nhập từ khóa tìm kiếm (trong tên ứng dụng hoặc gói):",
@@ -700,7 +732,7 @@ def show_menu(device_serial, commands, device_name=None, display_choice="Tên th
         last_message = message
 
         if choice == "Thoát":
-            if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop():
+            if stop_youtube_loop() or stop_app_loop() or stop_chplay_loop() or stop_volume_loop():
                 console.print(f"\033[2A\033[K=> [bold yellow]Đã dừng tất cả các vòng lặp.[/bold yellow]")
             stop_scrcpy()
             console.print("[bold green]Đang thoát...[/bold green]")
